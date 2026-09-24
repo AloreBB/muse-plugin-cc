@@ -36,6 +36,10 @@ const MUSE_PROVIDER = process.env.MUSE_COMPANION_PROVIDER || null;
 // Headless runs have nobody to answer approval prompts: with Muse's default (on-request) the first
 // shell call blocks forever. The sandbox still applies.
 const MUSE_APPROVAL_MODE = process.env.MUSE_COMPANION_APPROVAL_MODE || "never";
+// Muse's shell sandbox (bubblewrap) needs unprivileged user namespaces; hosts that restrict them
+// (Ubuntu 24.04+ AppArmor) fail every sandboxed shell call, git included. Off by default; set
+// MUSE_COMPANION_SANDBOX=on where the sandbox works.
+const MUSE_SANDBOX = process.env.MUSE_COMPANION_SANDBOX === "on";
 const STATE_ROOT_OVERRIDE = process.env.MUSE_COMPANION_STATE_ROOT || null;
 const PLUGIN_DATA_ENV = "CLAUDE_PLUGIN_DATA";
 
@@ -348,6 +352,7 @@ function renderTemplate(template, vars) {
 // ---- muse invocation ----
 function buildMuseArgs({ model, effort, sessionId, promptFile, workspace, readOnly }) {
   const args = ["exec", "--workspace", workspace, "--approval-mode", MUSE_APPROVAL_MODE];
+  if (!MUSE_SANDBOX) args.push("--disable-sandbox");
   if (readOnly) args.push("--disable-write");
   if (MUSE_PROVIDER) args.push("--provider", MUSE_PROVIDER);
   if (model) args.push("--model", model);

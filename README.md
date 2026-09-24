@@ -129,9 +129,11 @@ plugins/muse/
   the first shell call blocks the job forever. Override with `MUSE_COMPANION_APPROVAL_MODE`.
 - Reviews and `--read-only` tasks also pass `--disable-write`, so read-only is enforced by Muse,
   not just asked for in the prompt.
-- Muse's shell sandbox (bubblewrap) needs unprivileged user namespaces. On Ubuntu 24.04+ with
-  `kernel.apparmor_restrict_unprivileged_userns=1` every sandboxed shell call fails
-  (`bwrap: loopback: Failed RTM_NEWADDR`); Muse can still read and edit files, but not run commands.
+- Runs pass `--disable-sandbox` by default. Muse's shell sandbox (bubblewrap) needs unprivileged
+  user namespaces; on Ubuntu 24.04+ with `kernel.apparmor_restrict_unprivileged_userns=1` every
+  sandboxed shell call fails (`bwrap: loopback: Failed RTM_NEWADDR`), git included. Set
+  `MUSE_COMPANION_SANDBOX=on` on hosts where the sandbox works. Without the sandbox, `--read-only`
+  blocks Muse's file-write tool but a shell command could still write: review Muse's diff.
 - Background jobs are detached `node muse-companion.mjs __run <job-id>` workers
   tracked in `$CLAUDE_PLUGIN_DATA/state` (fallback: system temp dir).
 - Session resume maps to `muse exec --session-id`; no thread import protocol.

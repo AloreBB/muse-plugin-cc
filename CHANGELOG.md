@@ -4,6 +4,7 @@
 
 - Pass `--approval-mode never` to `muse exec` (override with `MUSE_COMPANION_APPROVAL_MODE`). Headless runs had nobody to approve tool calls, so any task or review that ran a shell command hung forever.
 - `--read-only` tasks and reviews pass `--disable-write`, instead of only asking in the prompt.
+- Pass `--disable-sandbox` by default (opt back in with `MUSE_COMPANION_SANDBOX=on`): on hosts that restrict unprivileged user namespaces the sandbox broke every shell call, git included.
 
 ## 0.1.0
 
