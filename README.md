@@ -123,8 +123,15 @@ plugins/muse/
 
 ## Differences from codex-plugin-cc
 
-- Worker is `muse exec --workspace <root> --prompt-file <file>` (plus `--model`,
-  `--reasoning-effort`, `--session-id`); no Codex app-server or broker daemon.
+- Worker is `muse exec --workspace <root> --approval-mode never --prompt-file <file>`
+  (plus `--model`, `--reasoning-effort`, `--session-id`); no Codex app-server or broker daemon.
+  Runs are headless, so nobody can answer an approval prompt: without `--approval-mode never`
+  the first shell call blocks the job forever. Override with `MUSE_COMPANION_APPROVAL_MODE`.
+- Reviews and `--read-only` tasks also pass `--disable-write`, so read-only is enforced by Muse,
+  not just asked for in the prompt.
+- Muse's shell sandbox (bubblewrap) needs unprivileged user namespaces. On Ubuntu 24.04+ with
+  `kernel.apparmor_restrict_unprivileged_userns=1` every sandboxed shell call fails
+  (`bwrap: loopback: Failed RTM_NEWADDR`); Muse can still read and edit files, but not run commands.
 - Background jobs are detached `node muse-companion.mjs __run <job-id>` workers
   tracked in `$CLAUDE_PLUGIN_DATA/state` (fallback: system temp dir).
 - Session resume maps to `muse exec --session-id`; no thread import protocol.

@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.1
+
+- Pass `--approval-mode never` to `muse exec` (override with `MUSE_COMPANION_APPROVAL_MODE`). Headless runs had nobody to approve tool calls, so any task or review that ran a shell command hung forever.
+- `--read-only` tasks and reviews pass `--disable-write`, instead of only asking in the prompt.
+
 ## 0.1.0
 
 - Initial port of `openai/codex-plugin-cc` (v1.0.6) from Codex to Muse.
