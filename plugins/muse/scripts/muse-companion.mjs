@@ -33,6 +33,13 @@ const VALID_EFFORTS = new Set(["none", "minimal", "low", "medium", "high", "xhig
 
 const MUSE_BIN = process.env.MUSE_COMPANION_BIN || "muse";
 const MUSE_PROVIDER = process.env.MUSE_COMPANION_PROVIDER || null;
+// Headless runs have nobody to answer approval prompts: with Muse's default (on-request) the first
+// shell call blocks forever. The sandbox still applies.
+const MUSE_APPROVAL_MODE = process.env.MUSE_COMPANION_APPROVAL_MODE || "never";
+// Muse's shell sandbox (bubblewrap) needs unprivileged user namespaces; hosts that restrict them
+// (Ubuntu 24.04+ AppArmor) fail every sandboxed shell call, git included. Off by default; set
+// MUSE_COMPANION_SANDBOX=on where the sandbox works.
+const MUSE_SANDBOX = process.env.MUSE_COMPANION_SANDBOX === "on";
 const STATE_ROOT_OVERRIDE = process.env.MUSE_COMPANION_STATE_ROOT || null;
 const PLUGIN_DATA_ENV = "CLAUDE_PLUGIN_DATA";
 
@@ -343,8 +350,10 @@ function renderTemplate(template, vars) {
 }
 
 // ---- muse invocation ----
-function buildMuseArgs({ model, effort, sessionId, promptFile, workspace }) {
-  const args = ["exec", "--workspace", workspace];
+function buildMuseArgs({ model, effort, sessionId, promptFile, workspace, readOnly }) {
+  const args = ["exec", "--workspace", workspace, "--approval-mode", MUSE_APPROVAL_MODE];
+  if (!MUSE_SANDBOX) args.push("--disable-sandbox");
+  if (readOnly) args.push("--disable-write");
   if (MUSE_PROVIDER) args.push("--provider", MUSE_PROVIDER);
   if (model) args.push("--model", model);
   if (effort) args.push("--reasoning-effort", effort);
@@ -364,11 +373,11 @@ function checkMuseBinary() {
   return { ok: true, version: (result.stdout || "").trim().split("\n")[0] };
 }
 
-function runMuseForeground({ cwd, root, promptText, model, effort, sessionId, jobId, kind }) {
+function runMuseForeground({ cwd, root, promptText, model, effort, sessionId, readOnly, jobId, kind }) {
   const { jobsDir } = statePaths(cwd);
   const promptFile = path.join(jobsDir, `${jobId}.prompt.md`);
   fs.writeFileSync(promptFile, promptText, "utf8");
-  const args = buildMuseArgs({ model, effort, sessionId, promptFile, workspace: root });
+  const args = buildMuseArgs({ model, effort, sessionId, promptFile, workspace: root, readOnly });
   appendLog(cwd, jobId, `Running: ${MUSE_BIN} ${args.join(" ")}`);
   const result = spawnSync(MUSE_BIN, args, { cwd: root, shell: false, encoding: "utf8", maxBuffer: 64 * 1024 * 1024 });
   const stdout = result.stdout ?? "";
@@ -437,6 +446,7 @@ function runJobInternal(cwd, jobId) {
       model: spec.model ?? null,
       effort: spec.effort ?? null,
       sessionId: spec.sessionId ?? null,
+      readOnly: spec.readOnly === true,
       jobId,
       kind: job.kind,
     });
@@ -595,6 +605,7 @@ function handleReview(cwd, rawArgv, { templateName, kind, defaultSummary }) {
         model: options.model ?? null,
         effort: options.effort ?? null,
         sessionId: null,
+        readOnly: true,
         storeSession: false,
       },
     });
@@ -628,6 +639,7 @@ function handleReview(cwd, rawArgv, { templateName, kind, defaultSummary }) {
       model: options.model ?? null,
       effort: options.effort ?? null,
       sessionId: null,
+      readOnly: true,
       jobId: id,
       kind,
     });
@@ -687,6 +699,7 @@ function handleTask(cwd, rawArgv) {
     model: options.model ?? null,
     effort: options.effort ?? null,
     sessionId,
+    readOnly,
     storeSession: true,
   };
   if (background) {
@@ -713,7 +726,7 @@ function handleTask(cwd, rawArgv) {
   });
   try {
     const startedAt = Date.now();
-    const output = runMuseForeground({ cwd, root, promptText, model: spec.model, effort: spec.effort, sessionId, jobId: id, kind: "task" });
+    const output = runMuseForeground({ cwd, root, promptText, model: spec.model, effort: spec.effort, sessionId, readOnly, jobId: id, kind: "task" });
     const durationMs = Date.now() - startedAt;
     fs.writeFileSync(
       path.join(jobsDir, `${id}.result.json`),
