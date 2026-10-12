@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.2
+
+- Default to `--model muse-spark-1.3` with `--contributor-mode off` on every `muse exec` call (override with `MUSE_COMPANION_MODEL` / `MUSE_COMPANION_CONTRIBUTOR_MODE`). Explicit `--model` still wins.
+
 ## 0.1.1
 
 - Pass `--approval-mode never` to `muse exec` (override with `MUSE_COMPANION_APPROVAL_MODE`). Headless runs had nobody to approve tool calls, so any task or review that ran a shell command hung forever.

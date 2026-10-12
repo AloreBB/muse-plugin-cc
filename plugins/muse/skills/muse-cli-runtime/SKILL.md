@@ -17,7 +17,7 @@ Execution rules:
 - Do not call `setup`, `review`, `adversarial-review`, `status`, `result`, or `cancel` from `muse:muse-rescue`.
 - Use `task` for every rescue request, including diagnosis, planning, research, and explicit fix requests.
 - Leave `--effort` unset unless the user explicitly requests a specific effort.
-- Leave model unset by default. Add `--model` only when the user explicitly asks for one.
+- Default model is `muse-spark-1.3` with `--contributor-mode off`. Add `--model` only when the user explicitly asks for a different one.
 - Default to a write-capable Muse run unless the user explicitly asks for read-only behavior. Pass `--read-only` only for review, diagnosis, or research without edits.
 
 Command selection:

@@ -4,8 +4,10 @@
 // Only Node builtins are used. No dependencies.
 //
 // Env overrides (useful for tests):
-//   MUSE_COMPANION_BIN         path to the muse binary (default: "muse")
-//   MUSE_COMPANION_PROVIDER    extra `--provider <v>` flag on every muse call
+//   MUSE_COMPANION_BIN               path to the muse binary (default: "muse")
+//   MUSE_COMPANION_PROVIDER          extra `--provider <v>` flag on every muse call
+//   MUSE_COMPANION_MODEL             default `--model` (default: "muse-spark-1.3")
+//   MUSE_COMPANION_CONTRIBUTOR_MODE  `--contributor-mode on|off` (default: "off")
 //   MUSE_COMPANION_STATE_ROOT  override the state root directory
 //   CLAUDE_PLUGIN_DATA         state root used by the Claude Code plugin host
 
@@ -40,6 +42,9 @@ const MUSE_APPROVAL_MODE = process.env.MUSE_COMPANION_APPROVAL_MODE || "never";
 // (Ubuntu 24.04+ AppArmor) fail every sandboxed shell call, git included. Off by default; set
 // MUSE_COMPANION_SANDBOX=on where the sandbox works.
 const MUSE_SANDBOX = process.env.MUSE_COMPANION_SANDBOX === "on";
+// Default to the standard Muse model, never contributor mode. Explicit --model still wins.
+const MUSE_DEFAULT_MODEL = process.env.MUSE_COMPANION_MODEL || "muse-spark-1.3";
+const MUSE_CONTRIBUTOR_MODE = process.env.MUSE_COMPANION_CONTRIBUTOR_MODE || "off";
 const STATE_ROOT_OVERRIDE = process.env.MUSE_COMPANION_STATE_ROOT || null;
 const PLUGIN_DATA_ENV = "CLAUDE_PLUGIN_DATA";
 
@@ -355,7 +360,8 @@ function buildMuseArgs({ model, effort, sessionId, promptFile, workspace, readOn
   if (!MUSE_SANDBOX) args.push("--disable-sandbox");
   if (readOnly) args.push("--disable-write");
   if (MUSE_PROVIDER) args.push("--provider", MUSE_PROVIDER);
-  if (model) args.push("--model", model);
+  args.push("--model", model || MUSE_DEFAULT_MODEL);
+  args.push("--contributor-mode", MUSE_CONTRIBUTOR_MODE);
   if (effort) args.push("--reasoning-effort", effort);
   if (sessionId) args.push("--session-id", sessionId);
   args.push("--prompt-file", promptFile);

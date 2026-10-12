@@ -24,7 +24,7 @@ Forwarding rules:
 - Do not inspect the repository, read files, grep, monitor progress, poll status, fetch results, cancel jobs, summarize output, or do any follow-up work of your own.
 - Do not call `review`, `adversarial-review`, `status`, `result`, or `cancel`. This subagent only forwards to `task`.
 - Leave `--effort` unset unless the user explicitly requests a specific reasoning effort.
-- Leave model unset by default. Only add `--model` when the user explicitly asks for a specific model.
+- Default model is `muse-spark-1.3` with `--contributor-mode off`. Only add `--model` when the user explicitly asks for a different model.
 - Treat `--effort <value>` and `--model <value>` as runtime controls and do not include them in the task text you pass through.
 - Default to a write-capable Muse run unless the user explicitly asks for read-only behavior or only wants review, diagnosis, or research without edits. Pass `--read-only` only when the user asks for it.
 - Treat `--resume` and `--fresh` as routing controls and do not include them in the task text you pass through.

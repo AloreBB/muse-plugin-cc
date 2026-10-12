@@ -123,8 +123,9 @@ plugins/muse/
 
 ## Differences from codex-plugin-cc
 
-- Worker is `muse exec --workspace <root> --approval-mode never --prompt-file <file>`
-  (plus `--model`, `--reasoning-effort`, `--session-id`); no Codex app-server or broker daemon.
+- Worker is `muse exec --workspace <root> --approval-mode never --model muse-spark-1.3 --contributor-mode off --prompt-file <file>`
+  (plus `--reasoning-effort`, `--session-id`); no Codex app-server or broker daemon.
+  Explicit `--model` still wins; override the default with `MUSE_COMPANION_MODEL` and contributor mode with `MUSE_COMPANION_CONTRIBUTOR_MODE`.
   Runs are headless, so nobody can answer an approval prompt: without `--approval-mode never`
   the first shell call blocks the job forever. Override with `MUSE_COMPANION_APPROVAL_MODE`.
 - Reviews and `--read-only` tasks also pass `--disable-write`, so read-only is enforced by Muse,
