@@ -25,7 +25,7 @@ shells out to `muse exec` and tracks background jobs in local state files.
 Add the marketplace in Claude Code:
 
 ```bash
-/plugin marketplace add <your-fork-or-path>/muse-plugin-cc
+/plugin marketplace add AloreBB/muse-plugin-cc
 ```
 
 Install the plugin:
